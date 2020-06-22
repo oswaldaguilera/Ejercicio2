@@ -13,6 +13,7 @@ import pandas as pd
 import csv
 from pyspark.sql import types as T
 from pyspark.sql.window import Window 
+from pyspark.sql.functions import col   
 import pyspark.sql.functions
 import os
 
@@ -37,7 +38,7 @@ country = country.toPandas()
 country['country_id'] = country.index
 countryDict = country.set_index('country_id')['country'].to_dict()
 type(countryDict)
-countryDict[53] = ""
+
 
 
 with open('dict.csv', 'w') as f:  
@@ -45,22 +46,18 @@ with open('dict.csv', 'w') as f:
 
 
 sdfDict = scSpark.read.csv("dict.csv", header=False, sep=",")
+
 sdfDict.createOrReplaceTempView("dictionario")
 
-
 country = scSpark.sql("SELECT count(1) from demo")
-#countryInner = scSpark.sql("SELECT count(1) from demo INNER JOIN dictionario ON demo.country = dictionario._c1")
-countryInner = scSpark.sql("SELECT count(1) from demo INNER JOIN dictionario ON demo.country = dictionario._c1 OR (demo.country is null AND dictionario._c1 is) ")
-
-scSpark.sql("SELECT distinct(country) from demo").show()
-
-countryInner = scSpark.sql("SELECT * from demo FULL OUTER JOIN dictionario ON demo.country = dictionario._c1 where _c1 is null")
-countryInner.show()
-
-
-
-
-
-
+countryInner = scSpark.sql("SELECT count(1) from demo INNER JOIN dictionario ON demo.country = dictionario._c1")
 country.show()
 countryInner.show()
+
+country = scSpark.sql("SELECT count(1) from demo")
+countryInner = scSpark.sql("SELECT count(1) from demo LEFT JOIN dictionario ON demo.country = dictionario._c1")
+country.show()
+countryInner.show()
+
+
+countryInner = scSpark.sql("SELECT * from demo LEFT JOIN dictionario ON demo.country = dictionario._c1 where _c1 is null")
